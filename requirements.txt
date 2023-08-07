@@ -1,9 +1,0 @@
-langchain
-openai
-streamlit
-auto-gptq
-torch
-transformers
-tempfile
-PyPDF2
-tiktoken
