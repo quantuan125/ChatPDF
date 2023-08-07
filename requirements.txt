@@ -1,4 +1,4 @@
-auto_gptq==0.2.2+cu118
+auto_gptq
 huggingface_hub==0.16.4
 InstructorEmbedding==1.0.1
 InstructorEmbedding==1.0.1
