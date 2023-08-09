@@ -25,45 +25,14 @@ from langchain.llms import HuggingFacePipeline, LlamaCpp
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, GenerationConfig, LlamaForCausalLM, LlamaTokenizer
 from huggingface_hub import hf_hub_download
 from InstructorEmbedding import INSTRUCTOR
-import fitz
-from PIL import Image
-
-def display_pdf_as_images(file_stream):
-    file_bytes = file_stream.tobytes()
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-        tmpfile.write(file_bytes)
-        tmp_filename = tmpfile.name
-
-    # Open the temporary file with fitz
-    doc = fitz.open(tmp_filename)
-    image_list = []
-    
-    for page_number in range(doc.page_count):
-        page = doc.load_page(page_number)
-        pix = page.get_pixmap(dpi=300)  # scale up the image resolution
-        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        image_list.append(img)
-    
-    # Display images in Streamlit
-    for img in image_list:
-        st.image(img)
 
 
 def display_pdfs(file_path):
             with open(file_path, "rb") as f:
                 base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-            pdf_display = F'''
-            <object data="data:application/pdf;base64,{base64_pdf}" 
-            type="application/pdf" 
-            width="600" 
-            height="700">
-            <p>This browser does not support PDFs. Please download the PDF to view it: 
-            <a href="data:application/pdf;base64,{base64_pdf}">Download PDF</a></p>
-            </object>
-            '''
+            pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="600" height="700"></iframe>'
             st.markdown(pdf_display, unsafe_allow_html=True)
-
+            
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
@@ -464,9 +433,15 @@ def main():
         if pdf_docs is not None:
                 for doc in pdf_docs:
                     if doc.type == "application/pdf":
-                        file_stream = doc.getbuffer()
-                        display_pdf_as_images(file_stream)
-                        st.write(doc.name)
+                        temp_dir = tempfile.TemporaryDirectory()
+                        tmp_dir_path = temp_dir.name
+                        file_path = os.path.join(tmp_dir_path, doc.name)
+                        file = open(file_path, "wb")
+                        file.write(doc.getbuffer())
+                        if st.session_state.pdf is not None:
+                            if st.session_state.qa or st.session_state.conversation is not None:
+                                display_pdfs(file_path)
+                                st.write(doc.name)
                             
 
                     elif doc.type == "text/plain":
