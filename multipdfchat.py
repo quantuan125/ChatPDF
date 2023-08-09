@@ -30,7 +30,14 @@ from InstructorEmbedding import INSTRUCTOR
 def display_pdfs(file_path):
             with open(file_path, "rb") as f:
                 base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-            pdf_display = F'<object src="data:application/pdf;base64,{base64_pdf}" width="600" height="700" ></object>'
+                pdf_display = F'''
+                <object data="data:application/pdf;base64,{base64_pdf}" type="application/pdf" width="100%" height="700">
+                <iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700" style="border: none;">
+                This browser does not support PDFs. Please download the PDF to view it: 
+                <a href="data:application/pdf;base64,{base64_pdf}">Download PDF</a>
+                </iframe>
+                </object>
+                '''
             st.markdown(pdf_display, unsafe_allow_html=True)
             
 def get_pdf_text(pdf_docs):
