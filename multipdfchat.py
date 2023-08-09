@@ -256,8 +256,8 @@ def load_local_model(device_type, model_id, model_path, model_basename=None):
         repetition_penalty=1.15,
         generation_config=generation_config
     )
-    st.write(tokenizer)
-    st.write(model_basename)
+    #st.write(tokenizer)
+    #st.write(model_basename)
 
     local_model = HuggingFacePipeline(pipeline=pipe)
     logging.info("Local LLM Loaded")
