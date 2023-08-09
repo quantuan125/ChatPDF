@@ -30,9 +30,9 @@ from InstructorEmbedding import INSTRUCTOR
 def display_pdfs(file_path):
             with open(file_path, "rb") as f:
                 base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-            pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="600" height="700"></iframe>'
+            pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="600" height="700" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>'
             st.markdown(pdf_display, unsafe_allow_html=True)
-            
+
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
