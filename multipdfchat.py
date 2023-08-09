@@ -25,20 +25,26 @@ from langchain.llms import HuggingFacePipeline, LlamaCpp
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, GenerationConfig, LlamaForCausalLM, LlamaTokenizer
 from huggingface_hub import hf_hub_download
 from InstructorEmbedding import INSTRUCTOR
+import aspose.words as aw
 
 
-def display_pdfs(file_path):
-            with open(file_path, "rb") as f:
-                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-                pdf_display = F'''
-                <object data="data:application/pdf;base64,{base64_pdf}" type="application/pdf" width="100%" height="700">
-                <iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="700" style="border: none;">
-                This browser does not support PDFs. Please download the PDF to view it: 
-                <a href="data:application/pdf;base64,{base64_pdf}">Download PDF</a>
-                </iframe>
-                </object>
-                '''
-            st.markdown(pdf_display, unsafe_allow_html=True)
+def convert_pdf_to_html(pdf_path):
+    # Load the PDF document
+    doc = aw.Document(pdf_path)
+    
+    # Create a temporary directory to save the HTML file
+    temp_dir = tempfile.TemporaryDirectory()
+    html_path = os.path.join(temp_dir.name, "converted.html")
+    
+    # Save the document as HTML
+    doc.save(html_path, aw.SaveFormat.HTML)
+    
+    return html_path
+
+def display_html(html_path):
+    with open(html_path, 'r', encoding='utf-8') as file:
+        html_content = file.read()
+        st.markdown(html_content, unsafe_allow_html=True)
             
 def get_pdf_text(pdf_docs):
     text = ""
@@ -447,7 +453,10 @@ def main():
                         file.write(doc.getbuffer())
                         if st.session_state.pdf is not None:
                             if st.session_state.qa or st.session_state.conversation is not None:
-                                display_pdfs(file_path)
+                                 # Convert the PDF to HTML
+                                html_path = convert_pdf_to_html(file_path)
+                                # Display the HTML content
+                                display_html(html_path)
                                 st.write(doc.name)
                             
 
