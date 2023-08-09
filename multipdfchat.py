@@ -30,7 +30,7 @@ from InstructorEmbedding import INSTRUCTOR
 def display_pdfs(file_path):
             with open(file_path, "rb") as f:
                 base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-            pdf_display = F'<portal src="data:application/pdf;base64,{base64_pdf}" width="600" height="700"></portal>'
+            pdf_display = F'<frameset src="data:application/pdf;base64,{base64_pdf}" width="600" height="700"></frameset>'
             st.markdown(pdf_display, unsafe_allow_html=True)
             
 def get_pdf_text(pdf_docs):
