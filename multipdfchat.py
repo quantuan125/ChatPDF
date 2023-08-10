@@ -32,16 +32,23 @@ def convert_pdf_to_html(pdf_path):
     # Load the PDF document
     doc = aw.Document(pdf_path)
     
-    # Create a temporary directory to save the HTML file
-    temp_dir = tempfile.TemporaryDirectory()
-    html_path = os.path.join(temp_dir.name, "converted.html")
+    base_name = os.path.basename(pdf_path)
+    html_name = os.path.splitext(base_name)[0] + ".html"
+    html_path = os.path.join(os.path.dirname(pdf_path), html_name)
     
-    # Save the document as HTML
     doc.save(html_path, aw.SaveFormat.HTML)
     
     return html_path
 
-def display_html(html_path):
+def display_html(pdf_path):
+    doc = aw.Document(pdf_path)
+    
+    # Use the original file's name but with an ".html" extension
+    base_name = os.path.basename(pdf_path)
+    html_name = os.path.splitext(base_name)[0] + ".html"
+    html_path = os.path.join(os.path.dirname(pdf_path), html_name)
+    
+    doc.save(html_path, aw.SaveFormat.HTML)
     with open(html_path, 'r', encoding='utf-8') as file:
         html_content = file.read()
         st.markdown(html_content, unsafe_allow_html=True)
@@ -449,16 +456,13 @@ def main():
                         temp_dir = tempfile.TemporaryDirectory()
                         tmp_dir_path = temp_dir.name
                         file_path = os.path.join(tmp_dir_path, doc.name)
-                        file = open(file_path, "wb")
-                        file.write(doc.getbuffer())
+                        with open(file_path, "wb") as file:
+                            file.write(doc.getbuffer())
                         if st.session_state.pdf is not None:
                             if st.session_state.qa or st.session_state.conversation is not None:
-                                 # Convert the PDF to HTML
-                                html_path = convert_pdf_to_html(file_path)
-                                # Display the HTML content
-                                display_html(html_path)
+                                display_html(file_path)
                                 st.write(doc.name)
-                            
+                                    
 
                     elif doc.type == "text/plain":
                         st.write(st.session_state.txt)
