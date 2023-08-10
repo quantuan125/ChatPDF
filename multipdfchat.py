@@ -458,6 +458,7 @@ def main():
                                     s3_url = f"https://{st.secrets['AWS']['BUCKET_NAME']}.s3.{st.secrets['AWS']['AWS_DEFAULT_REGION']}.amazonaws.com/{s3_file_name}"
                                     display_pdfs(s3_url)
                                     st.write(doc.name)
+                                    st.write(s3_url)
                                     
 
                     elif doc.type == "text/plain":
