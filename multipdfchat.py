@@ -47,7 +47,7 @@ def upload_to_s3(file_obj, bucket_name, s3_file_name):
             return False
 
 def display_pdfs(s3_url):
-    st.markdown(f'<iframe src="{s3_url}" width="600" height="700"></iframe>', unsafe_allow_html=True)
+    st.markdown(f'<iframe src="{s3_url}" width="600" height="700" sandbox="allow-same-origin"></iframe>', unsafe_allow_html=True)
             
 def get_pdf_text(pdf_docs):
     text = ""
@@ -233,7 +233,7 @@ def load_local_model(device_type, model_id, model_path, model_basename=None):
                 model_basename=model_basename,
                 use_safetensors=True,
                 trust_remote_code=True,
-                device="cuda:0",
+                device="cuda",
                 use_triton=False,
                 quantize_config=None,
             )
@@ -343,7 +343,7 @@ def main():
                     model_path = os.path.join(base_directory, "local", "Llama2", "7B", "GPTQ")
                     model_id = "TheBloke/Llama-2-7B-Chat-GPTQ"
                     model_basename = "gptq_model-4bit-128g.safetensors"
-                    device_type = "cuda:0"
+                    device_type = "cuda"
                 st.session_state.local = load_local_model(device_type=device_type, model_id=model_id,  model_path=model_path, model_basename=model_basename)
                 st.write("Local LLM model has been loaded. Press 'Process' to continue")
             st.write(st.session_state.local)
