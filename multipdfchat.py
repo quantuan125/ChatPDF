@@ -47,7 +47,7 @@ def upload_to_s3(file_obj, bucket_name, s3_file_name):
             return False
 
 def display_pdfs(s3_url):
-    st.markdown(f'<iframe src="{s3_url}" width="600" height="700"></iframe>', unsafe_allow_html=True)
+    st.markdown(f'<object src="{s3_url}" width="600" height="700"></object>', unsafe_allow_html=True)
             
 def get_pdf_text(pdf_docs):
     text = ""
