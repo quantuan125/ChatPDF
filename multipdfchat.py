@@ -25,33 +25,29 @@ from langchain.llms import HuggingFacePipeline, LlamaCpp
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, GenerationConfig, LlamaForCausalLM, LlamaTokenizer
 from huggingface_hub import hf_hub_download
 from InstructorEmbedding import INSTRUCTOR
-import aspose.words as aw
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 
-def convert_pdf_to_html(pdf_path):
-    # Load the PDF document
-    doc = aw.Document(pdf_path)
-    
-    base_name = os.path.basename(pdf_path)
-    html_name = os.path.splitext(base_name)[0] + ".html"
-    html_path = os.path.join(os.path.dirname(pdf_path), html_name)
-    
-    doc.save(html_path, aw.SaveFormat.HTML)
-    
-    return html_path
 
-def display_html(pdf_path):
-    doc = aw.Document(pdf_path)
+def upload_to_s3(file_obj, bucket_name, s3_file_name):
+    s3 = boto3.client('s3', 
+                      aws_access_key_id=st.secrets["AWS"]["AWS_ACCESS_KEY_ID"],
+                      aws_secret_access_key=st.secrets["AWS"]["AWS_SECRET_ACCESS_KEY"],
+                      region_name=st.secrets["AWS"]["AWS_DEFAULT_REGION"])
+    try:
+            file_obj.seek(0)
+            s3.upload_fileobj(file_obj, bucket_name, s3_file_name, 
+                            ExtraArgs={'ContentType': 'application/pdf', 'ACL': 'public-read'})
+            print("Upload Successful")
+            return True
     
-    # Use the original file's name but with an ".html" extension
-    base_name = os.path.basename(pdf_path)
-    html_name = os.path.splitext(base_name)[0] + ".html"
-    html_path = os.path.join(os.path.dirname(pdf_path), html_name)
-    
-    doc.save(html_path, aw.SaveFormat.HTML)
-    with open(html_path, 'r', encoding='utf-8') as file:
-        html_content = file.read()
-        st.markdown(html_content, unsafe_allow_html=True)
+    except NoCredentialsError:
+            print("Credentials not available")
+            return False
+
+def display_pdfs(s3_url):
+    st.markdown(f'<iframe src="{s3_url}" width="600" height="700"></iframe>', unsafe_allow_html=True)
             
 def get_pdf_text(pdf_docs):
     text = ""
@@ -453,15 +449,15 @@ def main():
         if pdf_docs is not None:
                 for doc in pdf_docs:
                     if doc.type == "application/pdf":
-                        temp_dir = tempfile.TemporaryDirectory()
-                        tmp_dir_path = temp_dir.name
-                        file_path = os.path.join(tmp_dir_path, doc.name)
-                        with open(file_path, "wb") as file:
-                            file.write(doc.getbuffer())
                         if st.session_state.pdf is not None:
                             if st.session_state.qa or st.session_state.conversation is not None:
-                                display_html(file_path)
-                                st.write(doc.name)
+                                # Use the original file's name for the S3 object name
+                                s3_file_name = doc.name
+                                if upload_to_s3(doc, st.secrets["AWS"]["BUCKET_NAME"], s3_file_name):
+                                    # If upload is successful, display the PDF
+                                    s3_url = f"https://{st.secrets['AWS']['BUCKET_NAME']}.s3.{st.secrets['AWS']['AWS_DEFAULT_REGION']}.amazonaws.com/{s3_file_name}"
+                                    display_pdfs(s3_url)
+                                    st.write(doc.name)
                                     
 
                     elif doc.type == "text/plain":
